@@ -1,0 +1,16 @@
+import { Component } from "react";
+import { BrowserRouter } from "react-router-dom";
+
+import Routers from "./Routers";
+
+class App extends Component {
+  render() {
+    return (
+      <BrowserRouter>
+        <Routers />
+      </BrowserRouter>
+    );
+  }
+}
+
+export default App;
