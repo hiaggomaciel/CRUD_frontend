@@ -3,33 +3,15 @@ import { Button, MenuItem, TextField } from "@mui/material";
 import { Box, Container, Stack } from "@mui/system";
 import { useState } from "react";
 import { api } from "../services/api";
-import axios from "axios";
 
 const ImageUpload = () => {
   const [users, setUsers] = useState([]);
   const [image, setImage] = useState("");
   const [nameImage, setNameImage] = useState("");
-  const [nameUsersSelect, setNameUsersSelect] = useState("");
+  const [idUserSelect, setIdUserSelect] = useState("");
 
-  const sendData = () => {
-    const data = {
-      imagename: nameImage,
-      selectImage: image,
-    };
-    const options = {
-      method: "POST",
-      headers: { "content-type": "multipart/form-data" },
-      data: data,
-      url: `$images`,
-      baseURL: "http://127.0.0.1:8000/users"
-    };
-    axios(options)
-      .then((response) => {
-        console.log(response);
-      })
-      .catch((response) => console.log(response));
-  };
-
+  //// Puxando os Usuários da API ////
+  const data = { name: nameImage, user: idUserSelect };
   useEffect(() => {
     async function loadUsers() {
       const response = await api.get("users/");
@@ -37,21 +19,39 @@ const ImageUpload = () => {
     }
     loadUsers();
   }, []);
-
   const usersSelect = users?.map((item, index) => {
-    return { value: item.nomeCompleto, label: item.nomeCompleto };
+    return { value: item.id, label: item.nomeCompleto };
   });
-  console.log("nome Usuarios", nameUsersSelect);
+
+  //// Transformando os dados da API ////
+  const formData = new FormData();
+  formData.append("image", image);
+  formData.append("data", JSON.stringify(data));
+
+  //// Declaração para envio dos dados ////
+  const testFetch = async () => {
+    console.log(data);
+    const response = await fetch(
+      `http://127.0.0.1:8000/users/${idUserSelect}/images/uploadfiles/`,
+      {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        body: formData,
+      }
+    )
+      .then(async (res) => {
+        await res.json();
+      })
+      .then((users) => {
+        console.log(users);
+      })
+      .catch((error) => console.log(error));
+    console.log(response);
+  };
 
   return (
     <Container>
-      <Box
-        component="form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          sendData();
-        }}
-      >
+      <Box component="form">
         <TextField
           value={nameImage}
           onChange={(event) => {
@@ -71,10 +71,11 @@ const ImageUpload = () => {
           variant="outlined"
           id="outlined-select-currency"
           select
+          fullWidth
           label="Usuário"
-          value={nameUsersSelect}
+          value={idUserSelect}
           onChange={(event) => {
-            setNameUsersSelect(event.target.value);
+            setIdUserSelect(event.target.value);
           }}
           helperText="Escolha sua imagem"
         >
@@ -98,7 +99,7 @@ const ImageUpload = () => {
             required
             type="file"
             onChange={(event) => {
-              setImage(event.target.files);
+              setImage(event.target.files[0]);
             }}
           ></TextField>
           <Button
@@ -106,6 +107,7 @@ const ImageUpload = () => {
             size="large"
             variant="contained"
             component="label"
+            onClick={testFetch}
           >
             Enviar
           </Button>

@@ -1,23 +1,35 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Button, Container, Stack, TextField } from "@mui/material";
 import Botao from "../componentes/Botao";
-import { AuthContext } from "../contexts/auth";
+import { useNavigate } from "react-router-dom";
+import { api } from "../services/api";
 
 const Login = () => {
-  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [users, setUsers] = useState("");
+
+  useEffect(() => {
+    async function loadUsers() {
+      const response = await api.get("users/");
+      setUsers(response.data.results);
+    }
+    loadUsers();
+  }, []);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log("submit", { email, senha: password });
-    login(email, password);
+    if (users.indexOf(email) === -1) {
+      alert("Email não existe!");
+    }
+    navigate("/dashboard");
   };
 
   return (
     <Container component="main">
       <h2>Digite seu usuário e senha para acessar o MyImagesManager</h2>
-      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+      <Box component="form" noValidate sx={{ mt: 1 }}>
         <Stack
           spacing={5}
           direction="row"
@@ -62,6 +74,7 @@ const Login = () => {
             variant="contained"
             color="primary"
             children="Logar"
+            onClick={handleSubmit}
           />
           <Button
             style={{ backgroundColor: "#6278f7", padding: "10px 20px" }}
